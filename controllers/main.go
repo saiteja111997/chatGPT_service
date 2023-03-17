@@ -11,7 +11,7 @@ func main() {
 	port := "8080"
 	r := gin.Default()
 	// r.Use(server.EnableCors)
-	r.POST("/create", server.GenerateFinalResultV2)
+	r.POST("/ask_chatGPT", server.GenerateFinalResultV2)
 	r.POST("/test_webhook", server.TestWebhook)
 
 	if err := r.Run(":" + port); err != nil {

@@ -1,17 +1,24 @@
 package utilities
 
-type intent struct {
-	DisplayName string                 `json:"displayName"`
-	Parameters  map[string]interface{} `json:"parameters"`
-}
-
-type queryResult struct {
-	IntentInfo intent `json:"intentInfo"`
+type FulFillmentBody struct {
+	Tag string `json:"tag"`
 }
 
 type IntentParameterValue struct {
 	OriginalValue string `json:"originalValue"`
 	ResolvedValue string `json:"resolvedValue"`
+}
+
+type IntentBody struct {
+	LastMatchedIntent string                          `json:"lastMatchedIntent"`
+	DisplayName       string                          `json:"displayName"`
+	Confidence        float64                         `json:"confidence"`
+	Parameters        map[string]IntentParameterValue `json:"parameters"`
+}
+
+type SessionBody struct {
+	Session    string                 `json:"session"`
+	Parameters map[string]interface{} `json:"parameters"`
 }
 
 // webhookRequest is used to unmarshal a WebhookRequest JSON object. Note that
@@ -20,9 +27,12 @@ type IntentParameterValue struct {
 // the Dialogflow protocol buffers:
 // https://godoc.org/google.golang.org/genproto/googleapis/cloud/dialogflow/v2#WebhookRequest
 type WebhookRequest struct {
-	Session     string      `json:"session"`
-	ResponseID  string      `json:"responseId"`
-	QueryResult queryResult `json:"queryResult"`
+	DetectIntentResponseId string          `json:"detectIntentResponseId"`
+	Language               string          `json:"languageCode"`
+	FulFillmentInfo        FulFillmentBody `json:"fulfillmentInfo"`
+	IntentInfo             IntentBody      `json:"intentInfo"`
+	SessionInfo            SessionBody     `json:"sessionInfo"`
+	Text                   string          `json:"text"`
 }
 
 // webhookResponse is used to marshal a WebhookResponse JSON object. Note that

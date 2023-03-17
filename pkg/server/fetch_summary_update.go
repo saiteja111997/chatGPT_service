@@ -7,29 +7,27 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/saiteja111997/chatGPT_service/pkg/utilities"
 )
 
 const (
-	apiURL = "https://api.openai.com/v1/engines/text-davinci-001/jobs"
-	model  = "text-davinci-002"
+	apiURL = "https://api.openai.com/v1/completions"
+	model  = "text-davinci-003"
 )
 
 func GenerateFinalResultV2(c *gin.Context) {
 
-	var messageBody utilities.WebhookRequest
-
-	err := c.ShouldBind(messageBody)
+	var request utilities.WebhookRequest
+	err := c.ShouldBind(&request)
 
 	if err != nil {
 		log.Fatal(err.Error())
 	}
 
-	prompt := "hi"
-	// prompt := messageBody.Message
+	// prompt := "hi"
+	prompt := request.IntentInfo.Parameters["any"].OriginalValue
 
 	reqBody := map[string]interface{}{
 		"model":             model,
@@ -53,7 +51,8 @@ func GenerateFinalResultV2(c *gin.Context) {
 		return
 	}
 
-	openAiApiKey := os.Getenv("OPEN_AI_API_KEY")
+	// openAiApiKey := os.Getenv("OPEN_AI_API_KEY")
+	openAiApiKey := "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"
 	fmt.Println(openAiApiKey)
 
 	req.Header.Add("Content-Type", "application/json")
@@ -83,35 +82,52 @@ func GenerateFinalResultV2(c *gin.Context) {
 
 	fmt.Println(response["choices"].([]interface{})[0].(map[string]interface{})["text"])
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "Convo summary!!",
-		"Tasks":   response["choices"].([]interface{})[0].(map[string]interface{})["text"],
-	})
+	// c.JSON(http.StatusOK, gin.H{
+	// 	"message": "Convo summary!!",
+	// 	"Tasks":   response["choices"].([]interface{})[0].(map[string]interface{})["text"],
+	// })
+
+	webhookResponse := utilities.WebhookResponse{
+		FulfillmentResponse: utilities.Message{
+			Messages: []utilities.MessageObject{{
+				Text: utilities.TextObj{
+					Text: []string{response["choices"].([]interface{})[0].(map[string]interface{})["text"].(string)},
+				},
+			}},
+		},
+	}
+
+	c.JSON(http.StatusOK, webhookResponse)
 
 }
 
 func TestWebhook(c *gin.Context) {
 
 	var request utilities.WebhookRequest
-	// err := c.ShouldBind(&request)
+	err := c.ShouldBind(&request)
 
-	body := c.Request.Body
-
-	defer body.Close()
-
-	bytes, err := ioutil.ReadAll(body)
 	if err != nil {
-		fmt.Println("Error occured : ", err)
-		log.Fatal(err.Error())
+		fmt.Println("The error is : ", err.Error())
 	}
 
-	err = json.Unmarshal(bytes, &request)
-	if err != nil {
-		fmt.Println("Error occured : ", err)
-		log.Fatal(err.Error())
-	}
+	// body := c.Request.Body
+
+	// defer body.Close()
+
+	// bytes, err := ioutil.ReadAll(body)
+	// if err != nil {
+	// 	fmt.Println("Error occured : ", err)
+	// 	log.Fatal(err.Error())
+	// }
+
+	// err = json.Unmarshal(bytes, &request)
+	// if err != nil {
+	// 	fmt.Println("Error occured : ", err)
+	// 	log.Fatal(err.Error())
+	// }
 
 	fmt.Println("Printing the request : ", request)
+	fmt.Println("Printing the prompt : ", request.IntentInfo.Parameters["any"].OriginalValue)
 
 	response := utilities.WebhookResponse{
 		FulfillmentResponse: utilities.Message{
