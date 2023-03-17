@@ -7,8 +7,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/saiteja111997/chatGPT_service/pkg/utilities"
 )
 
@@ -21,6 +23,12 @@ func GenerateFinalResultV2(c *gin.Context) {
 
 	var request utilities.WebhookRequest
 	err := c.ShouldBind(&request)
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
+	err = godotenv.Load()
 
 	if err != nil {
 		log.Fatal(err.Error())
@@ -51,8 +59,8 @@ func GenerateFinalResultV2(c *gin.Context) {
 		return
 	}
 
-	// openAiApiKey := os.Getenv("OPEN_AI_API_KEY")
-	openAiApiKey := "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"
+	openAiApiKey := os.Getenv("OPEN_AI_API_KEY")
+
 	fmt.Println(openAiApiKey)
 
 	req.Header.Add("Content-Type", "application/json")
